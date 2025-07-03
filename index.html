@@ -123,9 +123,10 @@
     </section>
 
     <section>
-      <h2>Kirim Laporan ke WA Ayah/Ibu</h2>
+      <h2>Kirim & Unduh Laporan</h2>
       <p>Laporan otomatis dikirim ke nomor: <strong>6281234567890</strong></p>
-      <button onclick="sendReport()">Kirim Laporan</button>
+      <button onclick="sendReport()">Kirim ke WhatsApp</button>
+      <button onclick="downloadReport()">Unduh Dokumen (.txt)</button>
     </section>
   </div>
 
@@ -180,16 +181,7 @@
       else li.classList.remove("checked");
     }
 
-    function generateMonthlyReport() {
-      monthlyReport.innerHTML = `Ringkasan Bulanan:<br>
-        - Total Pemasukan: Rp${totalIn}<br>
-        - Total Pengeluaran: Rp${totalOut}<br>
-        - Sisa: Rp${totalIn - totalOut}`;
-    }
-
-    function sendReport() {
-      const phone = "6281234567890"; // Nomor default ayah/ibu
-
+    function generateReportText() {
       const shortTargets = Array.from(shortList.children).map(li => {
         const checked = li.querySelector('input').checked ? '[x]' : '[ ]';
         return `${checked} ${li.textContent.trim()}`;
@@ -200,15 +192,36 @@
         return `${checked} ${li.textContent.trim()}`;
       }).join("\n");
 
-      const message = `Laporan Self Improvement:%0A` +
-        `Total Pemasukan: Rp${totalIn}%0A` +
-        `Total Pengeluaran: Rp${totalOut}%0A` +
-        `Sisa: Rp${totalIn - totalOut}%0A%0A` +
-        `Target Jangka Pendek:%0A${shortTargets || "- Tidak ada"}%0A%0A` +
-        `Target Jangka Panjang:%0A${longTargets || "- Tidak ada"}`;
+      return `LAPORAN SELF IMPROVEMENT\n` +
+             `==========================\n` +
+             `Total Pemasukan: Rp${totalIn}\n` +
+             `Total Pengeluaran: Rp${totalOut}\n` +
+             `Sisa: Rp${totalIn - totalOut}\n\n` +
+             `Target Jangka Pendek:\n${shortTargets || "- Tidak ada"}\n\n` +
+             `Target Jangka Panjang:\n${longTargets || "- Tidak ada"}`;
+    }
 
+    function sendReport() {
+      const phone = "6281234567890";
+      const message = generateReportText();
       const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
       window.open(url, '_blank');
+    }
+
+    function downloadReport() {
+      const content = generateReportText();
+      const blob = new Blob([content], { type: 'text/plain' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'laporan_self_improvement.txt';
+      link.click();
+    }
+
+    function generateMonthlyReport() {
+      monthlyReport.innerHTML = `Ringkasan Bulanan:<br>
+        - Total Pemasukan: Rp${totalIn}<br>
+        - Total Pengeluaran: Rp${totalOut}<br>
+        - Sisa: Rp${totalIn - totalOut}`;
     }
 
     function toggleTheme() {
