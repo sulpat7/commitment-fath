@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Self Improvement Tracker</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 2rem;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    section {
+      margin-bottom: 2rem;
+    }
+    label {
+      display: block;
+      margin: 0.5rem 0 0.2rem;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 0.6rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      background: #4caf50;
+      color: #fff;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 0.5rem;
+    }
+    .log {
+      margin-top: 1rem;
+      background: #eef;
+      padding: 1rem;
+      border-radius: 6px;
+    }
+    .checked {
+      text-decoration: line-through;
+      color: gray;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Self Improvement Tracker</h1>
+
+    <section>
+      <h2>Catat Pemasukan & Pengeluaran</h2>
+      <label for="type">Jenis:</label>
+      <select id="type">
+        <option value="Pemasukan">Pemasukan</option>
+        <option value="Pengeluaran">Pengeluaran</option>
+      </select>
+
+      <label for="amount">Jumlah (Rp):</label>
+      <input type="number" id="amount" />
+
+      <label for="note">Catatan:</label>
+      <textarea id="note"></textarea>
+
+      <button onclick="addFinanceLog()">Tambah Catatan</button>
+      <div id="financeLog" class="log"></div>
+    </section>
+
+    <section>
+      <h2>Target Jangka Pendek</h2>
+      <label for="shortTarget">Deskripsi Target:</label>
+      <input type="text" id="shortTarget">
+      <button onclick="addShortTarget()">Tambah</button>
+      <ul id="shortList"></ul>
+    </section>
+
+    <section>
+      <h2>Target Jangka Panjang</h2>
+      <label for="longTarget">Deskripsi Target:</label>
+      <input type="text" id="longTarget">
+      <button onclick="addLongTarget()">Tambah</button>
+      <ul id="longList"></ul>
+    </section>
+
+    <section>
+      <h2>Laporan Bulanan</h2>
+      <button onclick="generateMonthlyReport()">Tampilkan Ringkasan Bulanan</button>
+      <div id="monthlyReport" class="log"></div>
+    </section>
+
+    <section>
+      <h2>Kirim Laporan via WhatsApp</h2>
+      <label for="phone">Nomor WhatsApp (cth: 6281234567890):</label>
+      <input type="text" id="phone">
+      <button onclick="sendReport()">Kirim Laporan</button>
+    </section>
+  </div>
+
+  <script>
+    const financeLog = document.getElementById("financeLog");
+    const shortList = document.getElementById("shortList");
+    const longList = document.getElementById("longList");
+    const monthlyReport = document.getElementById("monthlyReport");
+
+    let totalIn = 0;
+    let totalOut = 0;
+
+    function addFinanceLog() {
+      const type = document.getElementById("type").value;
+      const amount = parseInt(document.getElementById("amount").value);
+      const note = document.getElementById("note").value;
+
+      if (!amount || note.trim() === "") return alert("Isi semua kolom dulu ya!");
+
+      const entry = document.createElement("div");
+      entry.innerHTML = `<strong>${type}</strong>: Rp${amount} - ${note}`;
+      financeLog.appendChild(entry);
+
+      if (type === "Pemasukan") totalIn += amount;
+      else totalOut += amount;
+
+      document.getElementById("amount").value = "";
+      document.getElementById("note").value = "";
+    }
+
+    function addShortTarget() {
+      const input = document.getElementById("shortTarget");
+      if (input.value.trim() === "") return;
+      const li = document.createElement("li");
+      li.innerHTML = `<input type='checkbox' onchange='toggleCheck(this)'> ${input.value}`;
+      shortList.appendChild(li);
+      input.value = "";
+    }
+
+    function addLongTarget() {
+      const input = document.getElementById("longTarget");
+      if (input.value.trim() === "") return;
+      const li = document.createElement("li");
+      li.innerHTML = `<input type='checkbox' onchange='toggleCheck(this)'> ${input.value}`;
+      longList.appendChild(li);
+      input.value = "";
+    }
+
+    function toggleCheck(checkbox) {
+      const li = checkbox.parentElement;
+      if (checkbox.checked) li.classList.add("checked");
+      else li.classList.remove("checked");
+    }
+
+    function generateMonthlyReport() {
+      monthlyReport.innerHTML = `Ringkasan Bulanan:<br>
+        - Total Pemasukan: Rp${totalIn}<br>
+        - Total Pengeluaran: Rp${totalOut}<br>
+        - Sisa: Rp${totalIn - totalOut}`;
+    }
+
+    function sendReport() {
+      const phone = document.getElementById("phone").value.trim();
+      if (!phone) return alert("Masukkan nomor WhatsApp!");
+
+      const shortTargets = Array.from(shortList.children).map(li => {
+        const checked = li.querySelector('input').checked ? '[x]' : '[ ]';
+        return `${checked} ${li.textContent.trim()}`;
+      }).join("\n");
+
+      const longTargets = Array.from(longList.children).map(li => {
+        const checked = li.querySelector('input').checked ? '[x]' : '[ ]';
+        return `${checked} ${li.textContent.trim()}`;
+      }).join("\n");
+
+      const message = `Laporan Self Improvement:%0A` +
+        `Total Pemasukan: Rp${totalIn}%0A` +
+        `Total Pengeluaran: Rp${totalOut}%0A` +
+        `Sisa: Rp${totalIn - totalOut}%0A%0A` +
+        `Target Jangka Pendek:%0A${shortTargets || "- Tidak ada"}%0A%0A` +
+        `Target Jangka Panjang:%0A${longTargets || "- Tidak ada"}`;
+
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+      window.open(url, '_blank');
+    }
+  </script>
+</body>
+</html>
